@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#FFF8F3">
+<title>Daily Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFF8F3;
+    --cream-deep:#FBEFE6;
+    --ink:#2D2A26;
+    --ink-soft:#6B6458;
+    --terracotta:#E8829C;
+    --terracotta-light:#F3B3C4;
+    --terracotta-pale:#FBE2E8;
+    --sage:#8A9A7E;
+    --sage-pale:#DEE5D8;
+    --mauve:#6B5B73;
+    --mauve-pale:#E3DCE6;
+    --line:#EAE0D6;
+    --shadow:0 4px 16px rgba(45,42,38,.06);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Work Sans',sans-serif;
+    min-height:100vh;
+    padding-bottom:96px;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Fraunces',serif; font-weight:600; margin:0;}
+  .app{max-width:520px; margin:0 auto; padding:0 20px;}
+
+  /* ── Header ── */
+  .top{padding:32px 0 18px; position:relative;}
+  .top-date{font-size:13px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px;}
+  .top-greeting{font-size:28px; line-height:1.15;}
+  .top-greeting em{font-style:italic; color:var(--terracotta);}
+
+  /* ── Tabs ── */
+  .tabbar{
+    position:fixed; bottom:0; left:0; right:0;
+    background:rgba(255,248,243,.92);
+    backdrop-filter:blur(12px);
+    border-top:1px solid var(--line);
+    display:flex; justify-content:center;
+    padding:10px 0 calc(10px + env(safe-area-inset-bottom));
+    z-index:50;
+  }
+  .tabbar-inner{display:flex; gap:8px; max-width:520px; width:100%; padding:0 20px;}
+  .tab{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;
+    background:none; border:none; padding:8px 4px; border-radius:14px;
+    color:var(--ink-soft); font-family:'Work Sans',sans-serif; font-size:12px; font-weight:600;
+    cursor:pointer; transition:background .2s, color .2s;
+  }
+  .tab.active{color:var(--terracotta); background:var(--terracotta-pale);}
+  .tab svg{width:22px; height:22px;}
+
+  /* ── Cards ── */
+  .card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:14px;
+    box-shadow:var(--shadow);
+  }
+  .card-title{font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+  .card-title .dot{width:8px; height:8px; border-radius:50%; display:inline-block;}
+
+  /* ── Sliders (mood/energy/pain/sleep-quality) ── */
+  .scale-row{margin-bottom:18px;}
+  .scale-row:last-child{margin-bottom:0;}
+  .scale-label{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;}
+  .scale-label .name{font-size:15px; font-weight:500;}
+  .scale-label .value{font-size:13px; color:var(--ink-soft); font-weight:600;}
+  .scale-track{
+    position:relative; height:40px; display:flex; align-items:center;
+  }
+  input[type="range"]{
+    -webkit-appearance:none; appearance:none;
+    width:100%; height:6px; border-radius:3px;
+    background:var(--cream-deep);
+    outline:none; margin:0;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:26px; height:26px; border-radius:50%;
+    background:var(--terracotta);
+    border:3px solid #fff;
+    box-shadow:0 2px 6px rgba(232,130,156,.4);
+    cursor:pointer;
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:26px; height:26px; border-radius:50%;
+    background:var(--terracotta);
+    border:3px solid #fff;
+    box-shadow:0 2px 6px rgba(232,130,156,.4);
+    cursor:pointer;
+  }
+
+  /* ── Chip toggles (symptoms) ── */
+  .chip-grid{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    border:1.5px solid var(--line);
+    background:var(--cream);
+    color:var(--ink);
+    border-radius:999px;
+    padding:9px 16px;
+    font-size:14px; font-weight:500;
+    font-family:'Work Sans',sans-serif;
+    cursor:pointer;
+    transition:all .15s;
+    display:flex; align-items:center; gap:6px;
+  }
+  .chip.on{
+    background:var(--terracotta); border-color:var(--terracotta); color:#fff;
+  }
+  .chip .emoji{font-size:15px;}
+
+  /* ── Sleep hours stepper ── */
+  .stepper{display:flex; align-items:center; gap:16px; justify-content:center; padding:8px 0;}
+  .stepper button{
+    width:44px; height:44px; border-radius:50%;
+    border:1.5px solid var(--line); background:#fff;
+    font-size:20px; color:var(--terracotta); font-weight:600;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .stepper .hours{font-family:'Fraunces',serif; font-size:30px; min-width:88px; text-align:center;}
+  .stepper .hours small{font-size:14px; font-family:'Work Sans',sans-serif; color:var(--ink-soft); font-weight:500;}
+
+  /* ── Notes ── */
+  textarea{
+    width:100%; border:1.5px solid var(--line); border-radius:14px;
+    padding:12px 14px; font-family:'Work Sans',sans-serif; font-size:14px;
+    resize:vertical; min-height:64px; color:var(--ink); background:var(--cream);
+  }
+  textarea:focus{outline:none; border-color:var(--terracotta-light);}
+
+  /* ── Save button ── */
+  .save-bar{position:sticky; bottom:0; padding:14px 0 6px; background:linear-gradient(to top, var(--cream) 70%, transparent);}
+  .btn-save{
+    width:100%; background:var(--terracotta); color:#fff; border:none;
+    border-radius:16px; padding:16px; font-size:16px; font-weight:600;
+    font-family:'Work Sans',sans-serif; cursor:pointer;
+    box-shadow:0 4px 14px rgba(232,130,156,.35);
+  }
+  .btn-save:active{transform:scale(.98);}
+  .btn-save.saved{background:var(--sage);}
+
+  /* ── Period toggle ── */
+  .period-toggle{display:flex; gap:10px;}
+  .period-btn{
+    flex:1; border:1.5px solid var(--line); background:#fff; border-radius:14px;
+    padding:14px; text-align:center; cursor:pointer; font-family:'Work Sans',sans-serif;
+  }
+  .period-btn .icon{font-size:20px; display:block; margin-bottom:4px;}
+  .period-btn .label{font-size:13px; font-weight:600; color:var(--ink-soft);}
+  .period-btn.on{border-color:var(--terracotta); background:var(--terracotta-pale);}
+  .period-btn.on .label{color:var(--terracotta);}
+
+  /* ── History list ── */
+  .history-entry{
+    background:#fff; border:1px solid var(--line); border-radius:18px;
+    padding:16px 18px; margin-bottom:10px;
+  }
+  .history-date{font-size:13px; font-weight:700; color:var(--ink); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;}
+  .history-date .rel{color:var(--ink-soft); font-weight:500;}
+  .history-tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+  .tag{
+    font-size:12px; background:var(--cream-deep); color:var(--ink-soft);
+    padding:4px 10px; border-radius:999px; font-weight:500;
+  }
+  .history-metrics{display:flex; gap:14px; font-size:12px; color:var(--ink-soft); margin-top:2px;}
+  .history-metrics b{color:var(--ink); font-weight:700;}
+  .period-flag{color:var(--terracotta); font-weight:700;}
+
+  .empty-state{text-align:center; padding:60px 20px; color:var(--ink-soft);}
+  .empty-state .big{font-size:40px; margin-bottom:10px;}
+  .empty-state h3{font-family:'Fraunces',serif; font-size:18px; color:var(--ink); margin-bottom:6px;}
+  .empty-state p{font-size:14px; line-height:1.5; max-width:280px; margin:0 auto;}
+
+  .section-label{font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); font-weight:600; margin:24px 0 10px;}
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  /* trend mini bars */
+  .trend-row{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line);}
+  .trend-row:last-child{border-bottom:none;}
+  .trend-label{font-size:14px; width:90px; flex-shrink:0; color:var(--ink);}
+  .trend-bars{display:flex; gap:3px; align-items:flex-end; height:28px; flex:1;}
+  .trend-bar{flex:1; background:var(--cream-deep); border-radius:3px; min-height:4px;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+
+  /* ── Lock screen ── */
+  .pin-dot{
+    width:14px; height:14px; border-radius:50%;
+    border:1.5px solid var(--terracotta-light);
+    background:transparent;
+    transition:background .15s, transform .15s;
+  }
+  .pin-dot.filled{ background:var(--terracotta); transform:scale(1.1); }
+  .pin-dot.shake{ animation:shakeDot .35s; }
+  @keyframes shakeDot{
+    0%,100%{ transform:translateX(0); }
+    25%{ transform:translateX(-5px); }
+    75%{ transform:translateX(5px); }
+  }
+  .pin-pad{
+    display:grid; grid-template-columns:repeat(3, 64px); gap:14px;
+    justify-content:center;
+  }
+  .pin-key{
+    width:64px; height:64px; border-radius:50%;
+    border:1.5px solid var(--line); background:#fff;
+    font-family:'Work Sans',sans-serif; font-size:22px; font-weight:600; color:var(--ink);
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .pin-key:active{ background:var(--terracotta-pale); border-color:var(--terracotta-light); }
+  #pin-del{ border:none; background:none; font-size:18px; color:var(--ink-soft); }
+
+  /* ── Medical screen ── */
+  .btn-secondary{
+    width:100%; background:var(--cream-deep); color:var(--ink); border:1.5px solid var(--line);
+    border-radius:14px; padding:12px; font-size:14px; font-weight:600;
+    font-family:'Work Sans',sans-serif; cursor:pointer; margin-top:8px;
+  }
+  .text-input{
+    width:100%; border:1.5px solid var(--line); border-radius:14px;
+    padding:12px 14px; font-family:'Work Sans',sans-serif; font-size:14px;
+    color:var(--ink); background:var(--cream);
+  }
+  .text-input:focus{ outline:none; border-color:var(--terracotta-light); }
+  .med-entry{
+    background:var(--cream); border:1px solid var(--line); border-radius:14px;
+    padding:12px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+  }
+  .med-entry .info{ flex:1; }
+  .med-entry .title{ font-size:14px; font-weight:600; color:var(--ink); }
+  .med-entry .sub{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+  .med-entry .del-btn{
+    background:none; border:none; color:var(--ink-soft); font-size:13px; cursor:pointer; padding:4px;
+  }
+  .treatment-empty, .med-empty{ font-size:13px; color:var(--ink-soft); font-style:italic; padding:6px 0 4px; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ════════ iOS "ADD TO HOME SCREEN" BANNER ════════ -->
+<div id="install-banner" style="display:none; position:fixed; left:16px; right:16px; bottom:96px; z-index:150; background:#fff; border:1px solid var(--line); border-radius:18px; padding:16px 18px; box-shadow:0 8px 24px rgba(45,42,38,.12);">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+    <div style="font-size:14px; line-height:1.5; color:var(--ink);">
+      <strong>Add this to your Home Screen</strong><br>
+      <span style="color:var(--ink-soft);">Tap <span style="font-weight:700;">Share</span> <span style="font-size:15px;">⬆️</span> below, then <span style="font-weight:700;">"Add to Home Screen"</span>.</span>
+    </div>
+    <button onclick="dismissInstallBanner()" style="background:none; border:none; font-size:16px; color:var(--ink-soft); cursor:pointer; padding:2px 4px;">✕</button>
+  </div>
+</div>
+
+<!-- ════════ LOCK SCREEN ════════ -->
+<div id="lock-screen" style="display:flex; position:fixed; inset:0; background:var(--cream); z-index:200; flex-direction:column; align-items:center; justify-content:center; padding:24px;">
+  <div style="font-size:36px; margin-bottom:8px;">🌙</div>
+  <h1 style="font-size:22px; margin-bottom:6px;">Just for <em style="font-style:italic; color:var(--terracotta);">you</em></h1>
+  <p style="font-size:14px; color:var(--ink-soft); margin:0 0 28px;">Enter your code</p>
+  <div id="pin-dots" style="display:flex; gap:14px; margin-bottom:32px;">
+    <div class="pin-dot" id="pin-dot-0"></div>
+    <div class="pin-dot" id="pin-dot-1"></div>
+    <div class="pin-dot" id="pin-dot-2"></div>
+    <div class="pin-dot" id="pin-dot-3"></div>
+  </div>
+  <div id="pin-error" style="font-size:13px; color:var(--terracotta); min-height:18px; margin-bottom:14px;"></div>
+  <div class="pin-pad">
+    <button class="pin-key" onclick="pinPress('1')">1</button>
+    <button class="pin-key" onclick="pinPress('2')">2</button>
+    <button class="pin-key" onclick="pinPress('3')">3</button>
+    <button class="pin-key" onclick="pinPress('4')">4</button>
+    <button class="pin-key" onclick="pinPress('5')">5</button>
+    <button class="pin-key" onclick="pinPress('6')">6</button>
+    <button class="pin-key" onclick="pinPress('7')">7</button>
+    <button class="pin-key" onclick="pinPress('8')">8</button>
+    <button class="pin-key" onclick="pinPress('9')">9</button>
+    <div></div>
+    <button class="pin-key" onclick="pinPress('0')">0</button>
+    <button class="pin-key" id="pin-del" onclick="pinDelete()">⌫</button>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- ════════ TODAY SCREEN ════════ -->
+  <div class="screen active" id="screen-today">
+    <div class="top">
+      <div class="top-date" id="today-date-label">—</div>
+      <h1 class="top-greeting">How's today <em>going</em>?</h1>
+    </div>
+
+    <!-- Appointment reminder -->
+    <div id="appt-reminder" style="display:none; background:var(--terracotta-pale); border:1px solid var(--terracotta-light); border-radius:16px; padding:14px 16px; margin-bottom:14px; display:flex; align-items:center; gap:10px;">
+      <span style="font-size:20px;">📅</span>
+      <div style="font-size:14px; color:var(--ink); line-height:1.4;" id="appt-reminder-text"></div>
+    </div>
+
+    <!-- Period -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--terracotta)"></span>Period</div>
+      <div class="period-toggle">
+        <button class="period-btn" data-flow="none" onclick="setFlow('none')">
+          <span class="icon">○</span><span class="label">None</span>
+        </button>
+        <button class="period-btn" data-flow="light" onclick="setFlow('light')">
+          <span class="icon">●</span><span class="label">Light</span>
+        </button>
+        <button class="period-btn" data-flow="normal" onclick="setFlow('normal')">
+          <span class="icon">●●</span><span class="label">Normal</span>
+        </button>
+        <button class="period-btn" data-flow="heavy" onclick="setFlow('heavy')">
+          <span class="icon">●●●</span><span class="label">Heavy</span>
+        </button>
+      </div>
+      <div class="scale-row" style="margin-top:18px">
+        <div class="scale-label"><span class="name">Cramps / pain</span><span class="value" id="val-pain">0</span></div>
+        <div class="scale-track"><input type="range" min="0" max="10" value="0" id="slider-pain" oninput="onSlider('pain')"></div>
+      </div>
+    </div>
+
+    <!-- Sleep -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--mauve)"></span>Sleep</div>
+      <div class="stepper">
+        <button onclick="adjustSleep(-0.5)">−</button>
+        <div class="hours"><span id="val-sleep">8</span><small> h</small></div>
+        <button onclick="adjustSleep(0.5)">+</button>
+      </div>
+      <div class="scale-row" style="margin-top:6px">
+        <div class="scale-label"><span class="name">Woke up rested?</span><span class="value" id="val-restedness">—</span></div>
+        <div class="scale-track"><input type="range" min="0" max="10" value="5" id="slider-restedness" oninput="onSlider('restedness')"></div>
+      </div>
+      <div class="scale-row">
+        <div class="scale-label"><span class="name">Still tired despite sleep</span><span class="value" id="val-stilltired">—</span></div>
+        <div class="scale-track"><input type="range" min="0" max="10" value="0" id="slider-stilltired" oninput="onSlider('stilltired')"></div>
+      </div>
+    </div>
+
+    <!-- Energy & mood -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--sage)"></span>Energy &amp; mood</div>
+      <div class="scale-row">
+        <div class="scale-label"><span class="name">Energy</span><span class="value" id="val-energy">—</span></div>
+        <div class="scale-track"><input type="range" min="0" max="10" value="5" id="slider-energy" oninput="onSlider('energy')"></div>
+      </div>
+      <div class="scale-row">
+        <div class="scale-label"><span class="name">Mood</span><span class="value" id="val-mood">—</span></div>
+        <div class="scale-track"><input type="range" min="0" max="10" value="5" id="slider-mood" oninput="onSlider('mood')"></div>
+      </div>
+      <div class="scale-row">
+        <div class="scale-label"><span class="name">Anxiety / stress</span><span class="value" id="val-anxiety">—</span></div>
+        <div class="scale-track"><input type="range" min="0" max="10" value="0" id="slider-anxiety" oninput="onSlider('anxiety')"></div>
+      </div>
+      <div class="scale-row">
+        <div class="scale-label"><span class="name">Brain fog</span><span class="value" id="val-brainfog">—</span></div>
+        <div class="scale-track"><input type="range" min="0" max="10" value="0" id="slider-brainfog" oninput="onSlider('brainfog')"></div>
+      </div>
+    </div>
+
+    <!-- Symptoms -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--terracotta-light)"></span>Symptoms today</div>
+      <div class="chip-grid" id="symptom-chips"></div>
+    </div>
+
+    <!-- Food -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--sage)"></span>Food today</div>
+      <div class="scale-row">
+        <div class="scale-label"><span class="name">How did you eat today?</span><span class="value" id="val-foodquality">—</span></div>
+        <div class="scale-track"><input type="range" min="0" max="10" value="5" id="slider-foodquality" oninput="onSlider('foodquality')"></div>
+      </div>
+      <div class="section-label" style="margin:18px 0 10px">Had any of these today?</div>
+      <div class="chip-grid" id="food-chips"></div>
+      <textarea id="food-notes-input" placeholder="What did you eat? (optional — even just one dish)" style="margin-top:14px"></textarea>
+      <button type="button" id="food-info-toggle" onclick="toggleFoodInfo()" style="margin-top:14px; background:none; border:none; padding:0; color:var(--terracotta); font-family:'Work Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px;">
+        <span id="food-info-arrow">▸</span> What foods help with PMOS?
+      </button>
+      <div id="food-info-panel" style="display:none; margin-top:14px; padding-top:14px; border-top:1px solid var(--line);">
+        <div style="margin-bottom:14px;">
+          <div style="font-size:13px; font-weight:700; color:var(--sage); margin-bottom:6px;">🌿 Tends to help</div>
+          <p style="font-size:13px; line-height:1.6; color:var(--ink-soft); margin:0;">Non-starchy veggies (leafy greens, broccoli, peppers), whole grains (brown rice, oats), beans and lentils, fatty fish (salmon), olive oil, and whole fruit. Overall, a Mediterranean-style way of eating is the pattern most consistently recommended for PMOS.</p>
+        </div>
+        <div>
+          <div style="font-size:13px; font-weight:700; color:var(--terracotta); margin-bottom:6px;">⚠️ Tends to flare things up</div>
+          <p style="font-size:13px; line-height:1.6; color:var(--ink-soft); margin:0;">Fried food, sugary drinks and sweets, white bread/rice/pasta, processed snacks, and alcohol — these are linked to more inflammation and blood sugar spikes in PMOS.</p>
+        </div>
+        <div style="margin-top:14px;">
+          <div style="font-size:13px; font-weight:700; color:var(--mauve); margin-bottom:6px;">🍚 A note on rice</div>
+          <p style="font-size:13px; line-height:1.6; color:var(--ink-soft); margin:0;">Research suggests Asian populations tend to have a stronger blood sugar and insulin spike from white rice than European populations do — so this one's worth paying extra attention to, not because rice itself is "bad," but because the response may be more pronounced. Parboiled rice (sometimes labeled "easy cook") has a meaningfully lower glycemic impact than regular white rice while still being rice — worth trying, though the texture is a bit firmer.</p>
+        </div>
+        <p style="font-size:12px; line-height:1.5; color:var(--ink-soft); margin:12px 0 0; font-style:italic;">No single food is a magic fix or a disaster — it's about overall pattern over time, not any one meal. Based on general PMOS nutrition guidance, not a substitute for advice from your doctor or a dietitian.</p>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--ink-soft)"></span>Notes</div>
+      <textarea id="notes-input" placeholder="Anything else worth remembering about today…"></textarea>
+    </div>
+
+    <div class="save-bar">
+      <button class="btn-save" id="save-btn" onclick="saveToday()">Save today's entry</button>
+    </div>
+  </div>
+
+  <!-- ════════ HISTORY SCREEN ════════ -->
+  <div class="screen" id="screen-history">
+    <div class="top">
+      <div class="top-date" id="history-count-label">—</div>
+      <h1 class="top-greeting">Your <em>history</em></h1>
+    </div>
+
+    <div class="card" id="trends-card" style="display:none">
+      <div class="card-title"><span class="dot" style="background:var(--sage)"></span>Last 14 days</div>
+      <div id="trends-body"></div>
+    </div>
+
+    <div id="history-list"></div>
+  </div>
+
+  <!-- ════════ MEDICAL SCREEN ════════ -->
+  <div class="screen" id="screen-medical">
+    <div class="top">
+      <div class="top-date">—</div>
+      <h1 class="top-greeting">Your <em>care</em></h1>
+    </div>
+
+    <!-- Treatment -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--mauve)"></span>Current treatment</div>
+      <div id="treatment-display"></div>
+      <button type="button" class="btn-secondary" onclick="openTreatmentEditor()">Edit treatment</button>
+      <div id="treatment-editor" style="display:none; margin-top:14px;">
+        <input type="text" id="treatment-name-input" placeholder="Medication name (e.g. Metformin)" class="text-input">
+        <input type="text" id="treatment-dose-input" placeholder="Dose (e.g. 500mg twice a day)" class="text-input" style="margin-top:10px;">
+        <input type="date" id="treatment-since-input" class="text-input" style="margin-top:10px;">
+        <div style="display:flex; gap:10px; margin-top:14px;">
+          <button type="button" class="btn-secondary" style="flex:1;" onclick="closeTreatmentEditor()">Cancel</button>
+          <button type="button" class="btn-save" style="flex:1; padding:12px;" onclick="saveTreatment()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appointments -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--terracotta)"></span>Appointments</div>
+      <div id="appointments-list"></div>
+      <button type="button" class="btn-secondary" onclick="openAppointmentForm()">+ Add appointment</button>
+      <div id="appointment-form" style="display:none; margin-top:14px;">
+        <input type="date" id="appt-date-input" class="text-input">
+        <input type="text" id="appt-type-input" placeholder="Type (e.g. GP follow-up, ultrasound)" class="text-input" style="margin-top:10px;">
+        <textarea id="appt-notes-input" placeholder="Notes (optional)" style="margin-top:10px; min-height:50px;"></textarea>
+        <div style="display:flex; gap:10px; margin-top:14px;">
+          <button type="button" class="btn-secondary" style="flex:1;" onclick="closeAppointmentForm()">Cancel</button>
+          <button type="button" class="btn-save" style="flex:1; padding:12px;" onclick="saveAppointment()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lab results -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--sage)"></span>Lab results</div>
+      <div id="labresults-list"></div>
+      <button type="button" class="btn-secondary" onclick="openLabForm()">+ Add result</button>
+      <div id="lab-form" style="display:none; margin-top:14px;">
+        <select id="lab-type-select" class="text-input">
+          <option value="">Select a test…</option>
+        </select>
+        <input type="text" id="lab-type-other-input" placeholder="Test name" class="text-input" style="display:none; margin-top:10px;">
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <input type="text" id="lab-value-input" placeholder="Value" class="text-input" style="flex:2;">
+          <input type="text" id="lab-unit-input" placeholder="Unit" class="text-input" style="flex:1;">
+        </div>
+        <input type="date" id="lab-date-input" class="text-input" style="margin-top:10px;">
+        <div style="display:flex; gap:10px; margin-top:14px;">
+          <button type="button" class="btn-secondary" style="flex:1;" onclick="closeLabForm()">Cancel</button>
+          <button type="button" class="btn-save" style="flex:1; padding:12px;" onclick="saveLabResult()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--ink-soft)"></span>Share with your doctor</div>
+      <p style="font-size:13px; line-height:1.5; color:var(--ink-soft); margin:0 0 14px;">Export a clean summary of your daily logs, treatment, appointments, and lab results as a PDF you can show or send to your doctor.</p>
+      <div class="period-toggle" id="export-range-toggle">
+        <button class="period-btn on" data-range="30" onclick="setExportRange('30')">
+          <span class="label">Last 30 days</span>
+        </button>
+        <button class="period-btn" data-range="all" onclick="setExportRange('all')">
+          <span class="label">Everything</span>
+        </button>
+      </div>
+      <button type="button" class="btn-save" style="margin-top:14px; padding:14px;" onclick="exportPdf()">Export PDF</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════ TAB BAR ════════ -->
+<div class="tabbar">
+  <div class="tabbar-inner">
+    <button class="tab active" id="tab-today" onclick="showScreen('today')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 L14.5 9 L22 9 L16 13.5 L18 21 L12 16.5 L6 21 L8 13.5 L2 9 L9.5 9 Z"/></svg>
+      Today
+    </button>
+    <button class="tab" id="tab-history" onclick="showScreen('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13a9 9 0 1 0 2.12-7.36L3 8"/><path d="M12 7v5l4 2"/></svg>
+      History
+    </button>
+    <button class="tab" id="tab-medical" onclick="showScreen('medical')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/><path d="M12 6v6M9 9h6"/></svg>
+      Medical
+    </button>
+  </div>
+</div>
+
+<script>
+// ════════ DATA ════════
+const SYMPTOM_LIST = [
+  {id:"bloating", emoji:"🫃", label:"Bloating"},
+  {id:"burping", emoji:"💨", label:"Burping / gas"},
+  {id:"cravings", emoji:"🍫", label:"Sugar cravings"},
+  {id:"mood_swings", emoji:"🎭", label:"Mood swings"},
+  {id:"acne", emoji:"🌸", label:"Acne"},
+  {id:"hair_loss", emoji:"🪶", label:"Hair shedding"},
+  {id:"hair_growth", emoji:"〜", label:"Excess hair growth"},
+  {id:"oily_skin", emoji:"✨", label:"Oily skin"},
+  {id:"skin_darkening", emoji:"🟤", label:"Skin darkening"},
+  {id:"headache", emoji:"💢", label:"Headache"},
+  {id:"pelvic_pain", emoji:"⚪", label:"Pelvic pain (non-period)"},
+  {id:"weight_change", emoji:"⚖️", label:"Weight fluctuation"},
+  {id:"low_libido", emoji:"♡", label:"Low libido"},
+];
+
+const FOOD_LIST = [
+  {id:"sugar", emoji:"🍬", label:"Sugar / sweets"},
+  {id:"refined_carbs", emoji:"🍞", label:"White bread / rice / pasta"},
+  {id:"dairy", emoji:"🥛", label:"Dairy"},
+  {id:"fried_fastfood", emoji:"🍟", label:"Fried / fast food"},
+  {id:"alcohol", emoji:"🍷", label:"Alcohol"},
+];
+
+const LAB_TEST_LIST = [
+  "Testosterone (total)",
+  "Free Androgen Index (FAI)",
+  "SHBG",
+  "DHEA-S",
+  "LH",
+  "FSH",
+  "AMH",
+  "Fasting insulin",
+  "Fasting glucose",
+  "HbA1c",
+  "TSH",
+  "Lipid panel",
+  "Other",
+];
+
+let state = {
+  flow: "none",
+  pain: 0,
+  sleepHours: 8,
+  restedness: 5,
+  stilltired: 0,
+  energy: 5,
+  mood: 5,
+  anxiety: 0,
+  brainfog: 0,
+  symptoms: [],
+  foodquality: 5,
+  foods: [],
+  foodNotes: "",
+  notes: ""
+};
+
+const todayKey = () => new Date().toISOString().slice(0,10);
+
+function loadAllEntries(){
+  try{
+    const raw = localStorage.getItem("pcos_entries");
+    return raw ? JSON.parse(raw) : {};
+  }catch(e){ return {}; }
+}
+function saveAllEntries(entries){
+  localStorage.setItem("pcos_entries", JSON.stringify(entries));
+}
+
+// ════════ TODAY SCREEN LOGIC ════════
+function renderSymptomChips(){
+  const wrap = document.getElementById("symptom-chips");
+  wrap.innerHTML = SYMPTOM_LIST.map(s => `
+    <button class="chip" id="chip-${s.id}" onclick="toggleSymptom('${s.id}')">
+      <span class="emoji">${s.emoji}</span>${s.label}
+    </button>
+  `).join("");
+}
+
+function renderFoodChips(){
+  const wrap = document.getElementById("food-chips");
+  wrap.innerHTML = FOOD_LIST.map(f => `
+    <button class="chip" id="foodchip-${f.id}" onclick="toggleFood('${f.id}')">
+      <span class="emoji">${f.emoji}</span>${f.label}
+    </button>
+  `).join("");
+}
+
+function toggleFood(id){
+  const i = state.foods.indexOf(id);
+  if(i === -1) state.foods.push(id);
+  else state.foods.splice(i,1);
+  document.getElementById(`foodchip-${id}`).classList.toggle("on");
+}
+
+function toggleFoodInfo(){
+  const panel = document.getElementById("food-info-panel");
+  const arrow = document.getElementById("food-info-arrow");
+  const isOpen = panel.style.display !== "none";
+  panel.style.display = isOpen ? "none" : "block";
+  arrow.textContent = isOpen ? "▸" : "▾";
+}
+
+function toggleSymptom(id){
+  const i = state.symptoms.indexOf(id);
+  if(i === -1) state.symptoms.push(id);
+  else state.symptoms.splice(i,1);
+  document.getElementById(`chip-${id}`).classList.toggle("on");
+}
+
+function setFlow(flow){
+  state.flow = flow;
+  document.querySelectorAll(".period-btn").forEach(b => b.classList.toggle("on", b.dataset.flow === flow));
+}
+
+function adjustSleep(delta){
+  state.sleepHours = Math.max(0, Math.min(14, state.sleepHours + delta));
+  document.getElementById("val-sleep").textContent = state.sleepHours;
+}
+
+const SLIDER_LABELS = {
+  pain: v => v===0 ? "None" : v<=3 ? "Mild" : v<=6 ? "Noticeable" : v<=8 ? "Strong" : "Severe",
+  restedness: v => v<=2 ? "Not at all" : v<=5 ? "Somewhat" : v<=8 ? "Pretty rested" : "Fully rested",
+  stilltired: v => v===0 ? "No, fine" : v<=3 ? "A little" : v<=6 ? "Noticeable" : v<=8 ? "Quite a lot" : "Exhausted",
+  energy: v => v<=2 ? "Drained" : v<=5 ? "Okay" : v<=8 ? "Good" : "Great",
+  mood: v => v<=2 ? "Low" : v<=5 ? "Neutral" : v<=8 ? "Good" : "Great",
+  anxiety: v => v===0 ? "Calm" : v<=3 ? "A little" : v<=6 ? "Noticeable" : "High",
+  brainfog: v => v===0 ? "Clear" : v<=3 ? "A little hazy" : v<=6 ? "Foggy" : "Very foggy",
+  foodquality: v => v<=2 ? "Pretty much anything" : v<=5 ? "Mixed" : v<=8 ? "Mostly balanced" : "Very nourishing",
+};
+
+function onSlider(key){
+  const el = document.getElementById(`slider-${key}`);
+  const v = parseInt(el.value, 10);
+  state[key] = v;
+  document.getElementById(`val-${key}`).textContent = SLIDER_LABELS[key](v);
+}
+
+function resetTodayForm(){
+  state = {flow:"none", pain:0, sleepHours:8, restedness:5, stilltired:0, energy:5, mood:5, anxiety:0, brainfog:0, symptoms:[], foodquality:5, foods:[], foodNotes:"", notes:""};
+  setFlow("none");
+  document.getElementById("slider-pain").value = 0;
+  document.getElementById("slider-restedness").value = 5;
+  document.getElementById("slider-stilltired").value = 0;
+  document.getElementById("slider-energy").value = 5;
+  document.getElementById("slider-mood").value = 5;
+  document.getElementById("slider-anxiety").value = 0;
+  document.getElementById("slider-brainfog").value = 0;
+  document.getElementById("slider-foodquality").value = 5;
+  ["pain","restedness","stilltired","energy","mood","anxiety","brainfog","foodquality"].forEach(onSlider);
+  document.getElementById("val-sleep").textContent = state.sleepHours;
+  document.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+  document.getElementById("notes-input").value = "";
+  document.getElementById("food-notes-input").value = "";
+}
+
+function loadTodayIntoForm(){
+  const entries = loadAllEntries();
+  const existing = entries[todayKey()];
+  resetTodayForm();
+  if(existing){
+    state = Object.assign(state, existing);
+    setFlow(state.flow);
+    document.getElementById("slider-pain").value = state.pain;
+    document.getElementById("slider-restedness").value = state.restedness;
+    document.getElementById("slider-stilltired").value = state.stilltired;
+    document.getElementById("slider-energy").value = state.energy;
+    document.getElementById("slider-mood").value = state.mood;
+    document.getElementById("slider-anxiety").value = state.anxiety;
+    document.getElementById("slider-brainfog").value = state.brainfog;
+    document.getElementById("slider-foodquality").value = state.foodquality;
+    ["pain","restedness","stilltired","energy","mood","anxiety","brainfog","foodquality"].forEach(onSlider);
+    document.getElementById("val-sleep").textContent = state.sleepHours;
+    state.symptoms.forEach(id => {
+      const chip = document.getElementById(`chip-${id}`);
+      if(chip) chip.classList.add("on");
+    });
+    (state.foods || []).forEach(id => {
+      const chip = document.getElementById(`foodchip-${id}`);
+      if(chip) chip.classList.add("on");
+    });
+    document.getElementById("notes-input").value = state.notes || "";
+    document.getElementById("food-notes-input").value = state.foodNotes || "";
+  }
+}
+
+function saveToday(){
+  state.notes = document.getElementById("notes-input").value;
+  state.foodNotes = document.getElementById("food-notes-input").value;
+  const entries = loadAllEntries();
+  entries[todayKey()] = Object.assign({}, state, {date: todayKey()});
+  saveAllEntries(entries);
+
+  const btn = document.getElementById("save-btn");
+  btn.textContent = "Saved ✓";
+  btn.classList.add("saved");
+  setTimeout(() => {
+    btn.textContent = "Save today's entry";
+    btn.classList.remove("saved");
+  }, 1600);
+}
+
+function renderTodayDate(){
+  const d = new Date();
+  const opts = {weekday:"long", month:"long", day:"numeric"};
+  document.getElementById("today-date-label").textContent = d.toLocaleDateString("en-US", opts);
+}
+
+// ════════ HISTORY SCREEN LOGIC ════════
+const SYMPTOM_BY_ID = Object.fromEntries(SYMPTOM_LIST.map(s => [s.id, s]));
+
+function relativeDay(dateStr){
+  const d = new Date(dateStr + "T00:00:00");
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.round((today - d) / 86400000);
+  if(diff === 0) return "Today";
+  if(diff === 1) return "Yesterday";
+  if(diff < 7) return `${diff} days ago`;
+  return d.toLocaleDateString("en-US", {month:"short", day:"numeric"});
+}
+
+function formatDateFull(dateStr){
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-US", {weekday:"short", month:"short", day:"numeric"});
+}
+
+function renderHistory(){
+  const entries = loadAllEntries();
+  const dates = Object.keys(entries).sort((a,b) => b.localeCompare(a));
+
+  document.getElementById("history-count-label").textContent =
+    dates.length === 0 ? "No entries yet" : `${dates.length} entr${dates.length===1?"y":"ies"} logged`;
+
+  const listEl = document.getElementById("history-list");
+  if(dates.length === 0){
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <div class="big">🌙</div>
+        <h3>Nothing logged yet</h3>
+        <p>Once you save your first daily entry, it'll show up here so you can look back and notice patterns over time.</p>
+      </div>`;
+    document.getElementById("trends-card").style.display = "none";
+    return;
+  }
+
+  listEl.innerHTML = dates.map(date => {
+    const e = entries[date];
+    const tags = (e.symptoms || []).map(id => SYMPTOM_BY_ID[id] ? `<span class="tag">${SYMPTOM_BY_ID[id].emoji} ${SYMPTOM_BY_ID[id].label}</span>` : "").join("");
+    const flowLabel = e.flow && e.flow !== "none" ? `<span class="period-flag">● ${e.flow} flow</span>` : "";
+    return `
+      <div class="history-entry">
+        <div class="history-date">
+          <span>${formatDateFull(date)}</span>
+          <span class="rel">${relativeDay(date)}</span>
+        </div>
+        <div class="history-metrics">
+          <span>😴 <b>${e.sleepHours ?? "—"}h</b></span>
+          <span>⚡ <b>${e.energy ?? "—"}/10</b></span>
+          <span>🙂 <b>${e.mood ?? "—"}/10</b></span>
+          ${e.pain ? `<span>🩹 <b>${e.pain}/10</b></span>` : ""}
+        </div>
+        ${flowLabel ? `<div class="history-tags">${flowLabel}</div>` : ""}
+        ${tags ? `<div class="history-tags">${tags}</div>` : ""}
+        ${e.notes ? `<div style="margin-top:10px; font-size:13px; color:var(--ink-soft); font-style:italic;">"${escapeHtml(e.notes)}"</div>` : ""}
+      </div>`;
+  }).join("");
+
+  renderTrends(entries, dates);
+}
+
+function escapeHtml(str){
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function renderTrends(entries, sortedDatesDesc){
+  const last14 = sortedDatesDesc.slice(0, 14).slice().reverse();
+  if(last14.length < 3){
+    document.getElementById("trends-card").style.display = "none";
+    return;
+  }
+  document.getElementById("trends-card").style.display = "block";
+
+  const metrics = [
+    {key:"energy", label:"Energy", max:10, color:"var(--sage)"},
+    {key:"mood", label:"Mood", max:10, color:"var(--mauve)"},
+    {key:"sleepHours", label:"Sleep", max:12, color:"var(--terracotta-light)"},
+    {key:"pain", label:"Pain", max:10, color:"var(--terracotta)"},
+  ];
+
+  document.getElementById("trends-body").innerHTML = metrics.map(m => {
+    const bars = last14.map(date => {
+      const e = entries[date];
+      const v = e && e[m.key] != null ? e[m.key] : 0;
+      const pct = Math.max(4, Math.round((v / m.max) * 100));
+      return `<div class="trend-bar" style="height:${pct}%; background:${m.color}"></div>`;
+    }).join("");
+    return `
+      <div class="trend-row">
+        <div class="trend-label">${m.label}</div>
+        <div class="trend-bars">${bars}</div>
+      </div>`;
+  }).join("");
+}
+
+// ════════ MEDICAL SCREEN LOGIC ════════
+function loadMedicalData(){
+  try{
+    const raw = localStorage.getItem("pcos_medical");
+    return raw ? JSON.parse(raw) : {treatment: null, appointments: [], labResults: []};
+  }catch(e){ return {treatment: null, appointments: [], labResults: []}; }
+}
+function saveMedicalData(data){
+  localStorage.setItem("pcos_medical", JSON.stringify(data));
+}
+
+// ── Treatment ──
+function renderTreatment(){
+  const data = loadMedicalData();
+  const el = document.getElementById("treatment-display");
+  if(!data.treatment){
+    el.innerHTML = `<div class="treatment-empty">No treatment added yet</div>`;
+    return;
+  }
+  const t = data.treatment;
+  el.innerHTML = `
+    <div class="med-entry">
+      <div class="info">
+        <div class="title">${escapeHtml(t.name)}</div>
+        <div class="sub">${escapeHtml(t.dose || "")}${t.since ? ` · since ${formatDateFull(t.since)}` : ""}</div>
+      </div>
+    </div>`;
+}
+
+function openTreatmentEditor(){
+  const data = loadMedicalData();
+  const t = data.treatment || {name:"", dose:"", since:""};
+  document.getElementById("treatment-name-input").value = t.name || "";
+  document.getElementById("treatment-dose-input").value = t.dose || "";
+  document.getElementById("treatment-since-input").value = t.since || "";
+  document.getElementById("treatment-editor").style.display = "block";
+}
+function closeTreatmentEditor(){
+  document.getElementById("treatment-editor").style.display = "none";
+}
+function saveTreatment(){
+  const name = document.getElementById("treatment-name-input").value.trim();
+  const dose = document.getElementById("treatment-dose-input").value.trim();
+  const since = document.getElementById("treatment-since-input").value;
+  const data = loadMedicalData();
+  data.treatment = name ? {name, dose, since} : null;
+  saveMedicalData(data);
+  closeTreatmentEditor();
+  renderTreatment();
+}
+
+// ── Appointments ──
+function renderAppointments(){
+  const data = loadMedicalData();
+  const el = document.getElementById("appointments-list");
+  const appts = (data.appointments || []).slice().sort((a,b) => b.date.localeCompare(a.date));
+  if(appts.length === 0){
+    el.innerHTML = `<div class="med-empty">No appointments yet</div>`;
+    return;
+  }
+  el.innerHTML = appts.map(a => `
+    <div class="med-entry">
+      <div class="info">
+        <div class="title">${escapeHtml(a.type || "Appointment")}</div>
+        <div class="sub">${formatDateFull(a.date)}${a.notes ? ` · ${escapeHtml(a.notes)}` : ""}</div>
+      </div>
+      <button class="del-btn" onclick="deleteAppointment('${a.id}')">Remove</button>
+    </div>`).join("");
+}
+
+function openAppointmentForm(){
+  document.getElementById("appt-date-input").value = todayKey();
+  document.getElementById("appt-type-input").value = "";
+  document.getElementById("appt-notes-input").value = "";
+  document.getElementById("appointment-form").style.display = "block";
+}
+function closeAppointmentForm(){
+  document.getElementById("appointment-form").style.display = "none";
+}
+function saveAppointment(){
+  const date = document.getElementById("appt-date-input").value;
+  const type = document.getElementById("appt-type-input").value.trim();
+  const notes = document.getElementById("appt-notes-input").value.trim();
+  if(!date) return;
+  const data = loadMedicalData();
+  data.appointments = data.appointments || [];
+  data.appointments.push({id: `${Date.now()}-${Math.random().toString(36).slice(2,7)}`, date, type, notes});
+  saveMedicalData(data);
+  closeAppointmentForm();
+  renderAppointments();
+}
+function deleteAppointment(id){
+  const data = loadMedicalData();
+  data.appointments = (data.appointments || []).filter(a => a.id !== id);
+  saveMedicalData(data);
+  renderAppointments();
+}
+
+// ── Lab results ──
+function renderLabTypeOptions(){
+  const sel = document.getElementById("lab-type-select");
+  sel.innerHTML = `<option value="">Select a test…</option>` +
+    LAB_TEST_LIST.map(t => `<option value="${t}">${t}</option>`).join("");
+}
+function onLabTypeChange(){
+  const val = document.getElementById("lab-type-select").value;
+  document.getElementById("lab-type-other-input").style.display = val === "Other" ? "block" : "none";
+}
+
+function renderLabResults(){
+  const data = loadMedicalData();
+  const el = document.getElementById("labresults-list");
+  const results = (data.labResults || []).slice().sort((a,b) => b.date.localeCompare(a.date));
+  if(results.length === 0){
+    el.innerHTML = `<div class="med-empty">No lab results yet</div>`;
+    return;
+  }
+  el.innerHTML = results.map(r => `
+    <div class="med-entry">
+      <div class="info">
+        <div class="title">${escapeHtml(r.testName)}: ${escapeHtml(r.value)}${r.unit ? ` ${escapeHtml(r.unit)}` : ""}</div>
+        <div class="sub">${formatDateFull(r.date)}</div>
+      </div>
+      <button class="del-btn" onclick="deleteLabResult('${r.id}')">Remove</button>
+    </div>`).join("");
+}
+
+function openLabForm(){
+  document.getElementById("lab-type-select").value = "";
+  document.getElementById("lab-type-other-input").value = "";
+  document.getElementById("lab-type-other-input").style.display = "none";
+  document.getElementById("lab-value-input").value = "";
+  document.getElementById("lab-unit-input").value = "";
+  document.getElementById("lab-date-input").value = todayKey();
+  document.getElementById("lab-form").style.display = "block";
+}
+function closeLabForm(){
+  document.getElementById("lab-form").style.display = "none";
+}
+function saveLabResult(){
+  const selected = document.getElementById("lab-type-select").value;
+  const other = document.getElementById("lab-type-other-input").value.trim();
+  const testName = selected === "Other" ? other : selected;
+  const value = document.getElementById("lab-value-input").value.trim();
+  const unit = document.getElementById("lab-unit-input").value.trim();
+  const date = document.getElementById("lab-date-input").value;
+  if(!testName || !value || !date) return;
+  const data = loadMedicalData();
+  data.labResults = data.labResults || [];
+  data.labResults.push({id: `${Date.now()}-${Math.random().toString(36).slice(2,7)}`, testName, value, unit, date});
+  saveMedicalData(data);
+  closeLabForm();
+  renderLabResults();
+}
+function deleteLabResult(id){
+  const data = loadMedicalData();
+  data.labResults = (data.labResults || []).filter(r => r.id !== id);
+  saveMedicalData(data);
+  renderLabResults();
+}
+
+function initMedicalScreen(){
+  renderLabTypeOptions();
+  document.getElementById("lab-type-select").onchange = onLabTypeChange;
+  renderTreatment();
+  renderAppointments();
+  renderLabResults();
+}
+
+// ════════ EXPORT PDF ════════
+let exportRange = "30";
+function setExportRange(range){
+  exportRange = range;
+  document.querySelectorAll("#export-range-toggle .period-btn").forEach(b => {
+    b.classList.toggle("on", b.dataset.range === range);
+  });
+}
+
+function exportPdf(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit: "pt", format: "a4"});
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 40;
+  let y = 50;
+
+  function addLine(text, size, bold, gap){
+    doc.setFontSize(size);
+    doc.setFont("helvetica", bold ? "bold" : "normal");
+    const lines = doc.splitTextToSize(text, pageWidth - margin*2);
+    lines.forEach(line => {
+      if(y > 780){ doc.addPage(); y = 50; }
+      doc.text(line, margin, y);
+      y += size * 0.9;
+    });
+    y += gap || 6;
+  }
+  function addSectionTitle(text){
+    y += 6;
+    addLine(text, 13, true, 8);
+  }
+
+  const entries = loadAllEntries();
+  const allDates = Object.keys(entries).sort((a,b) => a.localeCompare(b));
+  const cutoffDate = new Date(); cutoffDate.setDate(cutoffDate.getDate() - 30);
+  const cutoffKey = cutoffDate.toISOString().slice(0,10);
+  const dates = exportRange === "30" ? allDates.filter(d => d >= cutoffKey) : allDates;
+
+  const medical = loadMedicalData();
+
+  // Header
+  addLine("Daily Notes — Health Summary", 18, true, 4);
+  addLine(`Generated ${new Date().toLocaleDateString("en-US", {weekday:"long", year:"numeric", month:"long", day:"numeric"})}`, 10, false, 14);
+  doc.setDrawColor(220,220,220);
+  doc.line(margin, y - 6, pageWidth - margin, y - 6);
+  y += 8;
+
+  // Treatment
+  addSectionTitle("Current Treatment");
+  if(medical.treatment){
+    addLine(`${medical.treatment.name}${medical.treatment.dose ? " — " + medical.treatment.dose : ""}${medical.treatment.since ? ` (since ${medical.treatment.since})` : ""}`, 10, false, 4);
+  }else{
+    addLine("None recorded.", 10, false, 4);
+  }
+
+  // Appointments
+  addSectionTitle("Appointments");
+  const appts = (medical.appointments || []).slice().sort((a,b) => b.date.localeCompare(a.date));
+  if(appts.length === 0){
+    addLine("None recorded.", 10, false, 4);
+  }else{
+    appts.forEach(a => {
+      addLine(`${a.date} — ${a.type || "Appointment"}${a.notes ? `: ${a.notes}` : ""}`, 10, false, 3);
+    });
+  }
+
+  // Lab results
+  addSectionTitle("Lab Results");
+  const labs = (medical.labResults || []).slice().sort((a,b) => b.date.localeCompare(a.date));
+  if(labs.length === 0){
+    addLine("None recorded.", 10, false, 4);
+  }else{
+    labs.forEach(r => {
+      addLine(`${r.date} — ${r.testName}: ${r.value}${r.unit ? " " + r.unit : ""}`, 10, false, 3);
+    });
+  }
+
+  // Daily logs
+  addSectionTitle(`Daily Logs (${exportRange === "30" ? "last 30 days" : "all entries"})`);
+  if(dates.length === 0){
+    addLine("None recorded.", 10, false, 4);
+  }else{
+    dates.slice().reverse().forEach(date => {
+      const e = entries[date];
+      const symptomLabels = (e.symptoms || []).map(id => SYMPTOM_BY_ID[id] ? SYMPTOM_BY_ID[id].label : id).join(", ");
+      const foodLabels = (e.foods || []).map(id => {
+        const f = FOOD_LIST.find(x => x.id === id);
+        return f ? f.label : id;
+      }).join(", ");
+      addLine(`${date}`, 11, true, 2);
+      addLine(`Period: ${e.flow || "none"}${e.pain ? ` (pain ${e.pain}/10)` : ""}  ·  Sleep: ${e.sleepHours ?? "—"}h  ·  Energy: ${e.energy ?? "—"}/10  ·  Mood: ${e.mood ?? "—"}/10`, 9, false, 2);
+      if(symptomLabels) addLine(`Symptoms: ${symptomLabels}`, 9, false, 2);
+      if(foodLabels) addLine(`Food flags: ${foodLabels}`, 9, false, 2);
+      if(e.notes) addLine(`Notes: ${e.notes}`, 9, false, 2);
+      y += 6;
+    });
+  }
+
+  doc.save(`daily-notes-summary-${todayKey()}.pdf`);
+}
+
+// ════════ NAVIGATION ════════
+function showScreen(name){
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(`screen-${name}`).classList.add("active");
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.getElementById(`tab-${name}`).classList.add("active");
+  if(name === "history") renderHistory();
+  if(name === "medical") initMedicalScreen();
+  window.scrollTo(0,0);
+}
+
+// ════════ LOCK SCREEN ════════
+const APP_PIN = "0419";
+let pinBuffer = "";
+
+function renderPinDots(){
+  for(let i = 0; i < 4; i++){
+    const dot = document.getElementById(`pin-dot-${i}`);
+    dot.classList.toggle("filled", i < pinBuffer.length);
+  }
+}
+
+function pinPress(digit){
+  if(pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  renderPinDots();
+  if(pinBuffer.length === 4){
+    setTimeout(checkPin, 120);
+  }
+}
+
+function pinDelete(){
+  pinBuffer = pinBuffer.slice(0, -1);
+  renderPinDots();
+  document.getElementById("pin-error").textContent = "";
+}
+
+function checkPin(){
+  if(pinBuffer === APP_PIN){
+    try{ sessionStorage.setItem("pcos_unlocked", "1"); }catch(e){}
+    unlockApp();
+  }else{
+    document.getElementById("pin-error").textContent = "That's not it — try again";
+    for(let i = 0; i < 4; i++) document.getElementById(`pin-dot-${i}`).classList.add("shake");
+    setTimeout(() => {
+      for(let i = 0; i < 4; i++) document.getElementById(`pin-dot-${i}`).classList.remove("shake");
+      pinBuffer = "";
+      renderPinDots();
+    }, 350);
+  }
+}
+
+function unlockApp(){
+  document.getElementById("lock-screen").style.display = "none";
+  initApp();
+}
+
+function isAlreadyUnlocked(){
+  try{ return sessionStorage.getItem("pcos_unlocked") === "1"; }catch(e){ return false; }
+}
+
+// ════════ INIT ════════
+function initApp(){
+  renderSymptomChips();
+  renderFoodChips();
+  renderTodayDate();
+  loadTodayIntoForm();
+  maybeShowInstallBanner();
+  checkAppointmentReminder();
+}
+
+// ════════ APPOINTMENT REMINDER (on Today screen) ════════
+function checkAppointmentReminder(){
+  const data = loadMedicalData();
+  const appts = data.appointments || [];
+  if(appts.length === 0) return;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const upcoming = appts
+    .map(a => ({...a, daysAway: Math.round((new Date(a.date + "T00:00:00") - today) / 86400000)}))
+    .filter(a => a.daysAway >= 0 && a.daysAway <= 2)
+    .sort((a,b) => a.daysAway - b.daysAway);
+
+  if(upcoming.length === 0) return;
+
+  const next = upcoming[0];
+  const when = next.daysAway === 0 ? "today" : next.daysAway === 1 ? "tomorrow" : "in 2 days";
+  const label = next.type ? next.type : "Appointment";
+  document.getElementById("appt-reminder-text").innerHTML = `<strong>${escapeHtml(label)}</strong> is ${when}${next.notes ? ` — ${escapeHtml(next.notes)}` : ""}`;
+  document.getElementById("appt-reminder").style.display = "flex";
+}
+
+// ════════ INSTALL BANNER (iOS only) ════════
+function isIos(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+function isStandalone(){
+  return window.navigator.standalone === true ||
+    window.matchMedia("(display-mode: standalone)").matches;
+}
+function maybeShowInstallBanner(){
+  try{
+    if(localStorage.getItem("pcos_install_dismissed") === "1") return;
+  }catch(e){}
+  if(isIos() && !isStandalone()){
+    document.getElementById("install-banner").style.display = "block";
+  }
+}
+function dismissInstallBanner(){
+  document.getElementById("install-banner").style.display = "none";
+  try{ localStorage.setItem("pcos_install_dismissed", "1"); }catch(e){}
+}
+
+if(isAlreadyUnlocked()){
+  document.getElementById("lock-screen").style.display = "none";
+  initApp();
+}
+</script>
+</body>
+</html>
