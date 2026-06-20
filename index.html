@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#FFF8F3">
+<title>Daily Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFF8F3;
+    --cream-deep:#FBEFE6;
+    --ink:#2D2A26;
+    --ink-soft:#6B6458;
+    --terracotta:#C97B63;
+    --terracotta-light:#E8B4A0;
+    --terracotta-pale:#F3DCD2;
+    --sage:#8A9A7E;
+    --sage-pale:#DEE5D8;
+    --mauve:#6B5B73;
+    --mauve-pale:#E3DCE6;
+    --line:#EAE0D6;
+    --shadow:0 4px 16px rgba(45,42,38,.06);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Work Sans',sans-serif;
+    min-height:100vh;
+    padding-bottom:96px;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Fraunces',serif; font-weight:600; margin:0;}
+  .app{max-width:520px; margin:0 auto; padding:0 20px;}
+
+  /* ── Header ── */
+  .top{padding:32px 0 18px; position:relative;}
+  .top-date{font-size:13px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px;}
+  .top-greeting{font-size:28px; line-height:1.15;}
+  .top-greeting em{font-style:italic; color:var(--terracotta);}
+
+  /* ── Tabs ── */
+  .tabbar{
+    position:fixed; bottom:0; left:0; right:0;
+    background:rgba(255,248,243,.92);
+    backdrop-filter:blur(12px);
+    border-top:1px solid var(--line);
+    display:flex; justify-content:center;
+    padding:10px 0 calc(10px + env(safe-area-inset-bottom));
+    z-index:50;
+  }
+  .tabbar-inner{display:flex; gap:8px; max-width:520px; width:100%; padding:0 20px;}
+  .tab{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;
+    background:none; border:none; padding:8px 4px; border-radius:14px;
+    color:var(--ink-soft); font-family:'Work Sans',sans-serif; font-size:12px; font-weight:600;
+    cursor:pointer; transition:background .2s, color .2s;
+  }
+  .tab.active{color:var(--terracotta); background:var(--terracotta-pale);}
+  .tab svg{width:22px; height:22px;}
+
+  /* ── Cards ── */
+  .card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:14px;
+    box-shadow:var(--shadow);
+  }
+  .card-title{font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+  .card-title .dot{width:8px; height:8px; border-radius:50%; display:inline-block;}
+
+  /* ── Sliders (mood/energy/pain/sleep-quality) ── */
+  .scale-row{margin-bottom:18px;}
+  .scale-row:last-child{margin-bottom:0;}
+  .scale-label{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;}
+  .scale-label .name{font-size:15px; font-weight:500;}
+  .scale-label .value{font-size:13px; color:var(--ink-soft); font-weight:600;}
+  .scale-track{
+    position:relative; height:40px; display:flex; align-items:center;
+  }
+  input[type="range"]{
+    -webkit-appearance:none; appearance:none;
+    width:100%; height:6px; border-radius:3px;
+    background:var(--cream-deep);
+    outline:none; margin:0;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:26px; height:26px; border-radius:50%;
+    background:var(--terracotta);
+    border:3px solid #fff;
+    box-shadow:0 2px 6px rgba(201,123,99,.4);
+    cursor:pointer;
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:26px; height:26px; border-radius:50%;
+    background:var(--terracotta);
+    border:3px solid #fff;
+    box-shadow:0 2px 6px rgba(201,123,99,.4);
+    cursor:pointer;
+  }
+
+  /* ── Chip toggles (symptoms) ── */
+  .chip-grid{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    border:1.5px solid var(--line);
+    background:var(--cream);
+    color:var(--ink);
+    border-radius:999px;
+    padding:9px 16px;
+    font-size:14px; font-weight:500;
+    font-family:'Work Sans',sans-serif;
+    cursor:pointer;
+    transition:all .15s;
+    display:flex; align-items:center; gap:6px;
+  }
+  .chip.on{
+    background:var(--terracotta); border-color:var(--terracotta); color:#fff;
+  }
+  .chip .emoji{font-size:15px;}
+
+  /* ── Sleep hours stepper ── */
+  .stepper{display:flex; align-items:center; gap:16px; justify-content:center; padding:8px 0;}
+  .stepper button{
+    width:44px; height:44px; border-radius:50%;
+    border:1.5px solid var(--line); background:#fff;
+    font-size:20px; color:var(--terracotta); font-weight:600;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .stepper .hours{font-family:'Fraunces',serif; font-size:30px; min-width:88px; text-align:center;}
+  .stepper .hours small{font-size:14px; font-family:'Work Sans',sans-serif; color:var(--ink-soft); font-weight:500;}
+
+  /* ── Notes ── */
+  textarea{
+    width:100%; border:1.5px solid var(--line); border-radius:14px;
+    padding:12px 14px; font-family:'Work Sans',sans-serif; font-size:14px;
+    resize:vertical; min-height:64px; color:var(--ink); background:var(--cream);
+  }
+  textarea:focus{outline:none; border-color:var(--terracotta-light);}
+
+  /* ── Save button ── */
+  .save-bar{position:sticky; bottom:0; padding:14px 0 6px; background:linear-gradient(to top, var(--cream) 70%, transparent);}
+  .btn-save{
+    width:100%; background:var(--terracotta); color:#fff; border:none;
+    border-radius:16px; padding:16px; font-size:16px; font-weight:600;
+    font-family:'Work Sans',sans-serif; cursor:pointer;
+    box-shadow:0 4px 14px rgba(201,123,99,.35);
+  }
+  .btn-save:active{transform:scale(.98);}
+  .btn-save.saved{background:var(--sage);}
+
+  /* ── Period toggle ── */
+  .period-toggle{display:flex; gap:10px;}
+  .period-btn{
+    flex:1; border:1.5px solid var(--line); background:#fff; border-radius:14px;
+    padding:14px; text-align:center; cursor:pointer; font-family:'Work Sans',sans-serif;
+  }
+  .period-btn .icon{font-size:20px; display:block; margin-bottom:4px;}
+  .period-btn .label{font-size:13px; font-weight:600; color:var(--ink-soft);}
+  .period-btn.on{border-color:var(--terracotta); background:var(--terracotta-pale);}
+  .period-btn.on .label{color:var(--terracotta);}
+
+  /* ── History list ── */
+  .history-entry{
+    background:#fff; border:1px solid var(--line); border-radius:18px;
+    padding:16px 18px; margin-bottom:10px;
+  }
+  .history-date{font-size:13px; font-weight:700; color:var(--ink); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;}
+  .history-date .rel{color:var(--ink-soft); font-weight:500;}
+  .history-tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+  .tag{
+    font-size:12px; background:var(--cream-deep); color:var(--ink-soft);
+    padding:4px 10px; border-radius:999px; font-weight:500;
+  }
+  .history-metrics{display:flex; gap:14px; font-size:12px; color:var(--ink-soft); margin-top:2px;}
+  .history-metrics b{color:var(--ink); font-weight:700;}
+  .period-flag{color:var(--terracotta); font-weight:700;}
+
+  .empty-state{text-align:center; padding:60px 20px; color:var(--ink-soft);}
+  .empty-state .big{font-size:40px; margin-bottom:10px;}
+  .empty-state h3{font-family:'Fraunces',serif; font-size:18px; color:var(--ink); margin-bottom:6px;}
+  .empty-state p{font-size:14px; line-height:1.5; max-width:280px; margin:0 auto;}
+
+  .section-label{font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); font-weight:600; margin:24px 0 10px;}
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  /* trend mini bars */
+  .trend-row{display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line);}
+  .trend-row:last-child{border-bottom:none;}
+  .trend-label{font-size:14px; width:90px; flex-shrink:0; color:var(--ink);}
+  .trend-bars{display:flex; gap:3px; align-items:flex-end; height:28px; flex:1;}
+  .trend-bar{flex:1; background:var(--cream-deep); border-radius:3px; min-height:4px;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ════════ TODAY SCREEN ════════ -->
+  <div class="screen active" id="screen-today">
+    <div class="top">
+      <div class="top-date" id="today-date-label">—</div>
+      <h1 class="top-greeting">How's today <em>going</em>?</h1>
+    </div>
+
+    <!-- Period -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--terracotta)"></span>Period</div>
+      <div class="period-toggle">
+        <button class="period-btn" data-flow="none" onclick="setFlow('none')">
+          <span class="icon">○</span><span class="label">None</span>
+        </button>
+        <button class="period-btn" data-flow="light" onclick="setFlow('light')">
+          <span class="icon">●</span><span class="label">Light</span>
+        </button>
+        <button class="period-btn" data-flow="normal" onclick="setFlow('normal')">
+          <span class="icon">●●</span><span class="label">Normal</span>
+        </button>
+        <button class="period-btn" data-flow="heavy" onclick="setFlow('heavy')">
+          <span class="icon">●●●</span><span class="label">Heavy</span>
+        </button>
+      </div>
+      <div class="scale-row" style="margin-top:18px">
+        <div class="scale-label"><span class="name">Cramps / pain</span><span class="value" id="val-pain">0</span></div>
+        <div class="scale-track"><input type="range" min="0" max="10" value="0" id="slider-pain" oninput="onSlider('pain')"></div>
+      </div>
+    </div>
+
+    <!-- Sleep -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--mauve)"></span>Sleep</div>
+      <div class="stepper">
+        <button onclick="adjustSleep(-0.5)">−</button>
+        <div class="hours"><span id="val-sleep">8</span><small> h</small></div>
+        <button onclick="adjustSleep(0.5)">+</button>
+      </div>
+      <div class="scale-row" style="margin-top:6px">
+        <div class="scale-label"><span class="name">Woke up rested?</span><span class="value" id="val-restedness">—</span></div>
+        <div class="scale-track"><input type="range" min="0" max="10" value="5" id="slider-restedness" oninput="onSlider('restedness')"></div>
+      </div>
+      <div class="scale-row">
+        <div class="scale-label"><span class="name">Still tired despite sleep</span><span class="value" id="val-stilltired">—</span></div>
+        <div class="scale-track"><input type="range" min="0" max="10" value="0" id="slider-stilltired" oninput="onSlider('stilltired')"></div>
+      </div>
+    </div>
+
+    <!-- Energy & mood -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--sage)"></span>Energy &amp; mood</div>
+      <div class="scale-row">
+        <div class="scale-label"><span class="name">Energy</span><span class="value" id="val-energy">—</span></div>
+        <div class="scale-track"><input type="range" min="0" max="10" value="5" id="slider-energy" oninput="onSlider('energy')"></div>
+      </div>
+      <div class="scale-row">
+        <div class="scale-label"><span class="name">Mood</span><span class="value" id="val-mood">—</span></div>
+        <div class="scale-track"><input type="range" min="0" max="10" value="5" id="slider-mood" oninput="onSlider('mood')"></div>
+      </div>
+      <div class="scale-row">
+        <div class="scale-label"><span class="name">Anxiety / stress</span><span class="value" id="val-anxiety">—</span></div>
+        <div class="scale-track"><input type="range" min="0" max="10" value="0" id="slider-anxiety" oninput="onSlider('anxiety')"></div>
+      </div>
+      <div class="scale-row">
+        <div class="scale-label"><span class="name">Brain fog</span><span class="value" id="val-brainfog">—</span></div>
+        <div class="scale-track"><input type="range" min="0" max="10" value="0" id="slider-brainfog" oninput="onSlider('brainfog')"></div>
+      </div>
+    </div>
+
+    <!-- Symptoms -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--terracotta-light)"></span>Symptoms today</div>
+      <div class="chip-grid" id="symptom-chips"></div>
+    </div>
+
+    <!-- Notes -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--ink-soft)"></span>Notes</div>
+      <textarea id="notes-input" placeholder="Anything else worth remembering about today…"></textarea>
+    </div>
+
+    <div class="save-bar">
+      <button class="btn-save" id="save-btn" onclick="saveToday()">Save today's entry</button>
+    </div>
+  </div>
+
+  <!-- ════════ HISTORY SCREEN ════════ -->
+  <div class="screen" id="screen-history">
+    <div class="top">
+      <div class="top-date" id="history-count-label">—</div>
+      <h1 class="top-greeting">Your <em>history</em></h1>
+    </div>
+
+    <div class="card" id="trends-card" style="display:none">
+      <div class="card-title"><span class="dot" style="background:var(--sage)"></span>Last 14 days</div>
+      <div id="trends-body"></div>
+    </div>
+
+    <div id="history-list"></div>
+  </div>
+
+</div>
+
+<!-- ════════ TAB BAR ════════ -->
+<div class="tabbar">
+  <div class="tabbar-inner">
+    <button class="tab active" id="tab-today" onclick="showScreen('today')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 L14.5 9 L22 9 L16 13.5 L18 21 L12 16.5 L6 21 L8 13.5 L2 9 L9.5 9 Z"/></svg>
+      Today
+    </button>
+    <button class="tab" id="tab-history" onclick="showScreen('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13a9 9 0 1 0 2.12-7.36L3 8"/><path d="M12 7v5l4 2"/></svg>
+      History
+    </button>
+  </div>
+</div>
+
+<script>
+// ════════ DATA ════════
+const SYMPTOM_LIST = [
+  {id:"bloating", emoji:"🫃", label:"Bloating"},
+  {id:"burping", emoji:"💨", label:"Burping / gas"},
+  {id:"cravings", emoji:"🍫", label:"Sugar cravings"},
+  {id:"mood_swings", emoji:"🎭", label:"Mood swings"},
+  {id:"acne", emoji:"🌸", label:"Acne"},
+  {id:"hair_loss", emoji:"🪶", label:"Hair shedding"},
+  {id:"hair_growth", emoji:"〜", label:"Excess hair growth"},
+  {id:"oily_skin", emoji:"✨", label:"Oily skin"},
+  {id:"skin_darkening", emoji:"🟤", label:"Skin darkening"},
+  {id:"headache", emoji:"💢", label:"Headache"},
+  {id:"pelvic_pain", emoji:"⚪", label:"Pelvic pain (non-period)"},
+  {id:"weight_change", emoji:"⚖️", label:"Weight fluctuation"},
+  {id:"low_libido", emoji:"♡", label:"Low libido"},
+];
+
+let state = {
+  flow: "none",
+  pain: 0,
+  sleepHours: 8,
+  restedness: 5,
+  stilltired: 0,
+  energy: 5,
+  mood: 5,
+  anxiety: 0,
+  brainfog: 0,
+  symptoms: [],
+  notes: ""
+};
+
+const todayKey = () => new Date().toISOString().slice(0,10);
+
+function loadAllEntries(){
+  try{
+    const raw = localStorage.getItem("pcos_entries");
+    return raw ? JSON.parse(raw) : {};
+  }catch(e){ return {}; }
+}
+function saveAllEntries(entries){
+  localStorage.setItem("pcos_entries", JSON.stringify(entries));
+}
+
+// ════════ TODAY SCREEN LOGIC ════════
+function renderSymptomChips(){
+  const wrap = document.getElementById("symptom-chips");
+  wrap.innerHTML = SYMPTOM_LIST.map(s => `
+    <button class="chip" id="chip-${s.id}" onclick="toggleSymptom('${s.id}')">
+      <span class="emoji">${s.emoji}</span>${s.label}
+    </button>
+  `).join("");
+}
+
+function toggleSymptom(id){
+  const i = state.symptoms.indexOf(id);
+  if(i === -1) state.symptoms.push(id);
+  else state.symptoms.splice(i,1);
+  document.getElementById(`chip-${id}`).classList.toggle("on");
+}
+
+function setFlow(flow){
+  state.flow = flow;
+  document.querySelectorAll(".period-btn").forEach(b => b.classList.toggle("on", b.dataset.flow === flow));
+}
+
+function adjustSleep(delta){
+  state.sleepHours = Math.max(0, Math.min(14, state.sleepHours + delta));
+  document.getElementById("val-sleep").textContent = state.sleepHours;
+}
+
+const SLIDER_LABELS = {
+  pain: v => v===0 ? "None" : v<=3 ? "Mild" : v<=6 ? "Noticeable" : v<=8 ? "Strong" : "Severe",
+  restedness: v => v<=2 ? "Not at all" : v<=5 ? "Somewhat" : v<=8 ? "Pretty rested" : "Fully rested",
+  stilltired: v => v===0 ? "No, fine" : v<=3 ? "A little" : v<=6 ? "Noticeable" : v<=8 ? "Quite a lot" : "Exhausted",
+  energy: v => v<=2 ? "Drained" : v<=5 ? "Okay" : v<=8 ? "Good" : "Great",
+  mood: v => v<=2 ? "Low" : v<=5 ? "Neutral" : v<=8 ? "Good" : "Great",
+  anxiety: v => v===0 ? "Calm" : v<=3 ? "A little" : v<=6 ? "Noticeable" : "High",
+  brainfog: v => v===0 ? "Clear" : v<=3 ? "A little hazy" : v<=6 ? "Foggy" : "Very foggy",
+};
+
+function onSlider(key){
+  const el = document.getElementById(`slider-${key}`);
+  const v = parseInt(el.value, 10);
+  state[key] = v;
+  document.getElementById(`val-${key}`).textContent = SLIDER_LABELS[key](v);
+}
+
+function resetTodayForm(){
+  state = {flow:"none", pain:0, sleepHours:8, restedness:5, stilltired:0, energy:5, mood:5, anxiety:0, brainfog:0, symptoms:[], notes:""};
+  setFlow("none");
+  document.getElementById("slider-pain").value = 0;
+  document.getElementById("slider-restedness").value = 5;
+  document.getElementById("slider-stilltired").value = 0;
+  document.getElementById("slider-energy").value = 5;
+  document.getElementById("slider-mood").value = 5;
+  document.getElementById("slider-anxiety").value = 0;
+  document.getElementById("slider-brainfog").value = 0;
+  ["pain","restedness","stilltired","energy","mood","anxiety","brainfog"].forEach(onSlider);
+  document.getElementById("val-sleep").textContent = state.sleepHours;
+  document.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+  document.getElementById("notes-input").value = "";
+}
+
+function loadTodayIntoForm(){
+  const entries = loadAllEntries();
+  const existing = entries[todayKey()];
+  resetTodayForm();
+  if(existing){
+    state = Object.assign(state, existing);
+    setFlow(state.flow);
+    document.getElementById("slider-pain").value = state.pain;
+    document.getElementById("slider-restedness").value = state.restedness;
+    document.getElementById("slider-stilltired").value = state.stilltired;
+    document.getElementById("slider-energy").value = state.energy;
+    document.getElementById("slider-mood").value = state.mood;
+    document.getElementById("slider-anxiety").value = state.anxiety;
+    document.getElementById("slider-brainfog").value = state.brainfog;
+    ["pain","restedness","stilltired","energy","mood","anxiety","brainfog"].forEach(onSlider);
+    document.getElementById("val-sleep").textContent = state.sleepHours;
+    state.symptoms.forEach(id => {
+      const chip = document.getElementById(`chip-${id}`);
+      if(chip) chip.classList.add("on");
+    });
+    document.getElementById("notes-input").value = state.notes || "";
+  }
+}
+
+function saveToday(){
+  state.notes = document.getElementById("notes-input").value;
+  const entries = loadAllEntries();
+  entries[todayKey()] = Object.assign({}, state, {date: todayKey()});
+  saveAllEntries(entries);
+
+  const btn = document.getElementById("save-btn");
+  btn.textContent = "Saved ✓";
+  btn.classList.add("saved");
+  setTimeout(() => {
+    btn.textContent = "Save today's entry";
+    btn.classList.remove("saved");
+  }, 1600);
+}
+
+function renderTodayDate(){
+  const d = new Date();
+  const opts = {weekday:"long", month:"long", day:"numeric"};
+  document.getElementById("today-date-label").textContent = d.toLocaleDateString("en-US", opts);
+}
+
+// ════════ HISTORY SCREEN LOGIC ════════
+const SYMPTOM_BY_ID = Object.fromEntries(SYMPTOM_LIST.map(s => [s.id, s]));
+
+function relativeDay(dateStr){
+  const d = new Date(dateStr + "T00:00:00");
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.round((today - d) / 86400000);
+  if(diff === 0) return "Today";
+  if(diff === 1) return "Yesterday";
+  if(diff < 7) return `${diff} days ago`;
+  return d.toLocaleDateString("en-US", {month:"short", day:"numeric"});
+}
+
+function formatDateFull(dateStr){
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-US", {weekday:"short", month:"short", day:"numeric"});
+}
+
+function renderHistory(){
+  const entries = loadAllEntries();
+  const dates = Object.keys(entries).sort((a,b) => b.localeCompare(a));
+
+  document.getElementById("history-count-label").textContent =
+    dates.length === 0 ? "No entries yet" : `${dates.length} entr${dates.length===1?"y":"ies"} logged`;
+
+  const listEl = document.getElementById("history-list");
+  if(dates.length === 0){
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <div class="big">🌙</div>
+        <h3>Nothing logged yet</h3>
+        <p>Once you save your first daily entry, it'll show up here so you can look back and notice patterns over time.</p>
+      </div>`;
+    document.getElementById("trends-card").style.display = "none";
+    return;
+  }
+
+  listEl.innerHTML = dates.map(date => {
+    const e = entries[date];
+    const tags = (e.symptoms || []).map(id => SYMPTOM_BY_ID[id] ? `<span class="tag">${SYMPTOM_BY_ID[id].emoji} ${SYMPTOM_BY_ID[id].label}</span>` : "").join("");
+    const flowLabel = e.flow && e.flow !== "none" ? `<span class="period-flag">● ${e.flow} flow</span>` : "";
+    return `
+      <div class="history-entry">
+        <div class="history-date">
+          <span>${formatDateFull(date)}</span>
+          <span class="rel">${relativeDay(date)}</span>
+        </div>
+        <div class="history-metrics">
+          <span>😴 <b>${e.sleepHours ?? "—"}h</b></span>
+          <span>⚡ <b>${e.energy ?? "—"}/10</b></span>
+          <span>🙂 <b>${e.mood ?? "—"}/10</b></span>
+          ${e.pain ? `<span>🩹 <b>${e.pain}/10</b></span>` : ""}
+        </div>
+        ${flowLabel ? `<div class="history-tags">${flowLabel}</div>` : ""}
+        ${tags ? `<div class="history-tags">${tags}</div>` : ""}
+        ${e.notes ? `<div style="margin-top:10px; font-size:13px; color:var(--ink-soft); font-style:italic;">"${escapeHtml(e.notes)}"</div>` : ""}
+      </div>`;
+  }).join("");
+
+  renderTrends(entries, dates);
+}
+
+function escapeHtml(str){
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function renderTrends(entries, sortedDatesDesc){
+  const last14 = sortedDatesDesc.slice(0, 14).slice().reverse();
+  if(last14.length < 3){
+    document.getElementById("trends-card").style.display = "none";
+    return;
+  }
+  document.getElementById("trends-card").style.display = "block";
+
+  const metrics = [
+    {key:"energy", label:"Energy", max:10, color:"var(--sage)"},
+    {key:"mood", label:"Mood", max:10, color:"var(--mauve)"},
+    {key:"sleepHours", label:"Sleep", max:12, color:"var(--terracotta-light)"},
+    {key:"pain", label:"Pain", max:10, color:"var(--terracotta)"},
+  ];
+
+  document.getElementById("trends-body").innerHTML = metrics.map(m => {
+    const bars = last14.map(date => {
+      const e = entries[date];
+      const v = e && e[m.key] != null ? e[m.key] : 0;
+      const pct = Math.max(4, Math.round((v / m.max) * 100));
+      return `<div class="trend-bar" style="height:${pct}%; background:${m.color}"></div>`;
+    }).join("");
+    return `
+      <div class="trend-row">
+        <div class="trend-label">${m.label}</div>
+        <div class="trend-bars">${bars}</div>
+      </div>`;
+  }).join("");
+}
+
+// ════════ NAVIGATION ════════
+function showScreen(name){
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(`screen-${name}`).classList.add("active");
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.getElementById(`tab-${name}`).classList.add("active");
+  if(name === "history") renderHistory();
+  window.scrollTo(0,0);
+}
+
+// ════════ INIT ════════
+renderSymptomChips();
+renderTodayDate();
+loadTodayIntoForm();
+</script>
+</body>
+</html>
